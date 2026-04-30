@@ -67,7 +67,9 @@ map.on('click', function(e) {
   } else {
     marker = createMarker(lat, lon);
   }
-
+  console.log(grist.selectedRecord);
+  console.log("new lat : " + lat);
+  console.log("new lon : " + lon);
   updateGrist(lat, lon);
 });
 
