@@ -25,6 +25,9 @@
 
   grist.ready({ requiredAccess: 'full' });
 
+  console.log(Object.keys(grist));
+  console.log(Object.keys(grist.docApi));
+  
 grist.onRecord(function(record) {
   if (!record) return;
   currentRecord = record;
