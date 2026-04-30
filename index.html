@@ -22,26 +22,27 @@
   let currentRecord = null;  // store the full record
   let tableId = null;
 
+
   grist.ready({ requiredAccess: 'full' });
 
-  grist.on('ready', async function() {
-    tableId = await grist.docApi.getTableId();
-  });
+grist.onRecord(function(record, mappings) {
+  if (!record) return;
+  currentRecord = record;
 
-  grist.onRecord(function(record) {
-    if (!record) return;
-    currentRecord = record;  // store full record
-    let lat = record.Latitude;
-    let lon = record.Longitude;
-    if (lat && lon) {
-      if (marker) {
-        marker.setLatLng([lat, lon]);
-      } else {
-        marker = createMarker(lat, lon);
-      }
-      map.setView([lat, lon], 12);
+  // Capture tableId here — this is the right moment
+  grist.docApi.getTableId().then(id => { tableId = id; });
+
+  let lat = record.Latitude;
+  let lon = record.Longitude;
+  if (lat && lon) {
+    if (marker) {
+      marker.setLatLng([lat, lon]);
+    } else {
+      marker = createMarker(lat, lon);
     }
-  });
+    map.setView([lat, lon], 12);
+  }
+});
 
   function createMarker(lat, lon) {
     let m = L.marker([lat, lon], { draggable: true }).addTo(map);
@@ -63,15 +64,18 @@
     updateGrist(lat, lon);
   });
 
-  function updateGrist(lat, lon) {
-    if (!currentRecord || !tableId) return;
+ function updateGrist(lat, lon) {
+  console.log("Updating record", currentRecord.id, "in table", tId, "with", lat, lon);
+  if (!currentRecord) return;
+  grist.docApi.getTableId().then(function(tId) {
     grist.docApi.applyUserActions([
-      ["UpdateRecord", tableId, currentRecord.id, {
+      ["UpdateRecord", tId, currentRecord.id, {
         Latitude: Number(lat),
         Longitude: Number(lon)
       }]
     ]);
-  }
+  });
+}
 </script>
 </body>
 </html>
