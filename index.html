@@ -7,92 +7,71 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
   <style>
-    html, body, #map {
-      height: 100%;
-      margin: 0;
-    }
+    html, body, #map { height: 100%; margin: 0; }
   </style>
 </head>
 <body>
 <div id="map"></div>
-
 <script>
-let map = L.map('map').setView([48.85, 2.35], 5); // centre France
+  let map = L.map('map').setView([48.85, 2.35], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19
-}).addTo(map);
+  let marker = null;
+  let currentRecord = null;  // store the full record
+  let tableId = null;
 
-let marker = null;
+  grist.ready({ requiredAccess: 'full' });
 
-let currentRecordId = null;
-let tableId = null;
+  grist.on('ready', async function() {
+    tableId = await grist.docApi.getTableId();
+  });
 
-grist.ready({requiredAccess: 'full'});
-  
-grist.onRecord(function(record) {
-  if (!record) return;
+  grist.onRecord(function(record) {
+    if (!record) return;
+    currentRecord = record;  // store full record
+    let lat = record.Latitude;
+    let lon = record.Longitude;
+    if (lat && lon) {
+      if (marker) {
+        marker.setLatLng([lat, lon]);
+      } else {
+        marker = createMarker(lat, lon);
+      }
+      map.setView([lat, lon], 12);
+    }
+  });
 
-  currentRecordId = record.id;
+  function createMarker(lat, lon) {
+    let m = L.marker([lat, lon], { draggable: true }).addTo(map);
+    m.on('dragend', function(e) {
+      let pos = e.target.getLatLng();
+      updateGrist(pos.lat, pos.lng);
+    });
+    return m;
+  }
 
-  let lat = record.Latitude;
-  let lon = record.Longitude;
-
-  if (lat && lon) {
+  map.on('click', function(e) {
+    let lat = e.latlng.lat;
+    let lon = e.latlng.lng;
     if (marker) {
       marker.setLatLng([lat, lon]);
     } else {
       marker = createMarker(lat, lon);
     }
-    map.setView([lat, lon], 12);
-  }
-});
-  
-// Lire les données de Grist
-grist.ready();
-
-
-// Créer un marker draggable
-function createMarker(lat, lon) {
-  let m = L.marker([lat, lon], {draggable: true}).addTo(map);
-
-  m.on('dragend', function(e) {
-    let pos = e.target.getLatLng();
-    updateGrist(pos.lat, pos.lng);
+    updateGrist(lat, lon);
   });
 
-  return m;
-}
-
-// Clic sur la carte
-map.on('click', function(e) {
-  let lat = e.latlng.lat;
-  let lon = e.latlng.lng;
-
-  if (marker) {
-    marker.setLatLng([lat, lon]);
-  } else {
-    marker = createMarker(lat, lon);
+  function updateGrist(lat, lon) {
+    if (!currentRecord || !tableId) return;
+    grist.docApi.applyUserActions([
+      ["UpdateRecord", tableId, currentRecord.id, {
+        Latitude: Number(lat),
+        Longitude: Number(lon)
+      }]
+    ]);
   }
-  console.log(grist.selectedRecord);
-  console.log("new lat : " + lat);
-  console.log("new lon : " + lon);
-  updateGrist(lat, lon);
-});
-
-// Mettre à jour Grist
-function updateGrist(lat, lon) {
-  if (!currentRecord) return;
-
-  const tableId = grist.getTableId();
-  console.log("tableId : " + tableId);
-  grist.docApi.applyUserActions([
-    ["UpdateRecord", tableId, currentRecord.id, {
-      Latitude: Number(lat),
-      Longitude: Number(lon)
-    }]
-  ]);
-}
 </script>
 </body>
 </html>
