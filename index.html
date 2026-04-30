@@ -7,7 +7,11 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
   <style>
-    html, body, #map { height: 100%; margin: 0; }
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
@@ -19,51 +23,55 @@
   }).addTo(map);
 
   let marker = null;
-  let currentRecord = null;  // store the full record
+  let currentRecord = null;
   let tableId = null;
+  let hasCoords = false;
 
+  grist.ready({
+    requiredAccess: 'full',
+    columns: [
+      { name: 'Latitude',  type: 'Numeric', optional: true },
+      { name: 'Longitude', type: 'Numeric', optional: true },
+      { name: 'Point',     type: 'Text',    optional: true,
+        description: 'Format WKT: POINT (lon lat)' },
+    ]
+  });
 
-  grist.ready({ requiredAccess: 'full' });
+  grist.onRecord(function(record) {
+    if (!record) return;
+    currentRecord = record;
+    tableId = grist.getSelectedTableIdSync();
 
-  console.log(Object.keys(grist));
-  console.log(Object.keys(grist.docApi));
-  
-let hasCoords = false;
+    let lat, lon;
 
-grist.onRecord(function(record) {
-  if (!record) return;
-  currentRecord = record;
-  tableId = grist.getSelectedTableIdSync();
-
-  let lat = record.Latitude;
-  let lon = record.Longitude;
-
-  if (lat && lon) {
-    hasCoords = true;  // record already has coords
-    if (marker) {
-      marker.setLatLng([lat, lon]);
+    if (record.Point) {
+      // Parse WKT format: POINT (lon lat)
+      const match = record.Point.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/i);
+      if (match) {
+        lon = parseFloat(match[1]);
+        lat = parseFloat(match[2]);
+      }
     } else {
-      marker = createMarker(lat, lon);
+      lat = record.Latitude;
+      lon = record.Longitude;
     }
-    map.setView([lat, lon], 12);
-  } else {
-    hasCoords = false;  // no coords yet
-    if (marker) {
-      map.removeLayer(marker);
-      marker = null;
+
+    if (lat && lon) {
+      hasCoords = true;
+      if (marker) {
+        marker.setLatLng([lat, lon]);
+      } else {
+        marker = createMarker(lat, lon);
+      }
+      map.setView([lat, lon], 12);
+    } else {
+      hasCoords = false;
+      if (marker) {
+        map.removeLayer(marker);
+        marker = null;
+      }
     }
-  }
-});
-
-map.on('click', function(e) {
-  if (hasCoords) return;  // ignore click if record already has coords
-
-  let lat = e.latlng.lat;
-  let lon = e.latlng.lng;
-  marker = createMarker(lat, lon);
-  hasCoords = true;  // now it has coords, further clicks do nothing
-  updateGrist(lat, lon);
-});
+  });
 
   function createMarker(lat, lon) {
     let m = L.marker([lat, lon], { draggable: true }).addTo(map);
@@ -74,17 +82,28 @@ map.on('click', function(e) {
     return m;
   }
 
+  // Click only creates coords if the record has none yet
+  map.on('click', function(e) {
+    if (hasCoords) return;
 
-function updateGrist(lat, lon) {
-  if (!currentRecord || !tableId) return;
-  console.log("Updating record", currentRecord.id, "in table", tableId, "with", lat, lon);
-  grist.docApi.applyUserActions([
-    ["UpdateRecord", tableId, currentRecord.id, {
-      Latitude: Number(lat),
-      Longitude: Number(lon)
-    }]
-  ]);
-}
+    let lat = e.latlng.lat;
+    let lon = e.latlng.lng;
+    marker = createMarker(lat, lon);
+    hasCoords = true;
+    updateGrist(lat, lon);
+  });
+
+  function updateGrist(lat, lon) {
+    if (!currentRecord || !tableId) return;
+
+    const fields = currentRecord.Point !== undefined
+      ? { Point: `POINT (${lon} ${lat})` }
+      : { Latitude: Number(lat), Longitude: Number(lon) };
+
+    grist.docApi.applyUserActions([
+      ["UpdateRecord", tableId, currentRecord.id, fields]
+    ]);
+  }
 </script>
 </body>
 </html>
