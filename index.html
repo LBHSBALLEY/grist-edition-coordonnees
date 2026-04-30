@@ -73,11 +73,13 @@ map.on('click', function(e) {
 
 // Mettre à jour Grist
 function updateGrist(lat, lon) {
-  grist.selectedTable.update({
-    Latitude: lat,
-    Longitude: lon
-  });
-}
+  grist.docApi.applyUserActions([
+    ["UpdateRecord", grist.selectedTable.getTableId(), grist.selectedRecord.id, {
+      Latitude: lat,
+      Longitude: lon
+    }]
+  ]);
+}  
 </script>
 </body>
 </html>
