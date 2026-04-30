@@ -29,11 +29,6 @@ let currentRecordId = null;
 let tableId = null;
 
 grist.ready({requiredAccess: 'full'});
-
-grist.viewApi.getTableId().then(id => {
-  tableId = id;
-  console.log("Table ID:", tableId);
-});
   
 grist.onRecord(function(record) {
   if (!record) return;
@@ -90,7 +85,7 @@ function updateGrist(lat, lon) {
   if (!currentRecord) return;
 
   const tableId = grist.getTableId();
-
+  console.log("tableId : " + tableId);
   grist.docApi.applyUserActions([
     ["UpdateRecord", tableId, currentRecord.id, {
       Latitude: Number(lat),
