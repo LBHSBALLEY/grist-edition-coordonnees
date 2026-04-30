@@ -30,8 +30,9 @@ let tableId = null;
 
 grist.ready({requiredAccess: 'full'});
 
-grist.onRecords(function(records, mappings) {
-  tableId = mappings.tableId;
+grist.viewApi.getTableId().then(id => {
+  tableId = id;
+  console.log("Table ID:", tableId);
 });
   
 grist.onRecord(function(record) {
