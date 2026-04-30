@@ -25,12 +25,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let marker = null;
 
-// Lire les données de Grist
-grist.ready();
+let currentRecordId = null;
 
-// Colonnes attendues
 grist.onRecord(function(record) {
   if (!record) return;
+
+  currentRecordId = record.id;
 
   let lat = record.Latitude;
   let lon = record.Longitude;
@@ -44,6 +44,10 @@ grist.onRecord(function(record) {
     map.setView([lat, lon], 12);
   }
 });
+  
+// Lire les données de Grist
+grist.ready();
+
 
 // Créer un marker draggable
 function createMarker(lat, lon) {
@@ -75,13 +79,18 @@ map.on('click', function(e) {
 
 // Mettre à jour Grist
 function updateGrist(lat, lon) {
+  if (!currentRecordId) {
+    console.warn("Aucune ligne sélectionnée");
+    return;
+  }
+
   grist.docApi.applyUserActions([
-    ["UpdateRecord", grist.selectedTable.getTableId(), grist.selectedRecord.id, {
-      Latitude: lat,
-      Longitude: lon
+    ["UpdateRecord", grist.selectedTable.getTableId(), currentRecordId, {
+      Latitude: Number(lat),
+      Longitude: Number(lon)
     }]
   ]);
-}  
+} 
 </script>
 </body>
 </html>
