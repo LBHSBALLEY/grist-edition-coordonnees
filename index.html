@@ -87,13 +87,12 @@ map.on('click', function(e) {
 
 // Mettre à jour Grist
 function updateGrist(lat, lon) {
-  if (!currentRecordId || !tableId) {
-    console.warn("Missing record or table");
-    return;
-  }
+  if (!currentRecord) return;
+
+  const tableId = grist.getTableId();
 
   grist.docApi.applyUserActions([
-    ["UpdateRecord", tableId, currentRecordId, {
+    ["UpdateRecord", tableId, currentRecord.id, {
       Latitude: Number(lat),
       Longitude: Number(lon)
     }]
