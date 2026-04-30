@@ -31,7 +31,7 @@
 grist.onRecord(function(record) {
   if (!record) return;
   currentRecord = record;
-  tableId = grist.getTableId(); // capture it here — guaranteed to work
+  tableId = grist.getSelectedTableIdSync(); // ✅ correct method
   
   let lat = record.Latitude;
   let lon = record.Longitude;
