@@ -32,7 +32,7 @@
     columns: [
       { name: 'Latitude',  type: 'Numeric', optional: true },
       { name: 'Longitude', type: 'Numeric', optional: true },
-      { name: 'Point',     type: 'Text',    optional: true,
+      { name: 'Geometry',     type: 'Text',    optional: true,
         description: 'Format WKT: POINT (lon lat)' },
     ]
   });
@@ -44,9 +44,9 @@
 
     let lat, lon;
 
-    if (record.Point) {
+    if (record.Geometry) {
       // Parse WKT format: POINT (lon lat)
-      const match = record.Point.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/i);
+      const match = record.Geometry.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/i);
       if (match) {
         lon = parseFloat(match[1]);
         lat = parseFloat(match[2]);
@@ -96,8 +96,8 @@
   function updateGrist(lat, lon) {
     if (!currentRecord || !tableId) return;
 
-    const fields = currentRecord.Point !== undefined
-      ? { Point: `POINT (${lon} ${lat})` }
+    const fields = currentRecord.Geometry !== undefined
+      ? { Geometry: `POINT (${lon} ${lat})` }
       : { Latitude: Number(lat), Longitude: Number(lon) };
 
     grist.docApi.applyUserActions([
