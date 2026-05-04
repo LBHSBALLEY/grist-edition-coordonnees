@@ -97,7 +97,7 @@
     if (!currentRecord || !tableId) return;
 
   const fields = {
-    ...(currentRecord.Point !== undefined && {
+    ...(currentRecord.Geometry !== undefined && {
       Geometry: `POINT (${lon} ${lat})`
     }),
     ...(currentRecord.Latitude !== undefined && {
