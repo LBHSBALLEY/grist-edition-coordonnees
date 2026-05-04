@@ -96,17 +96,17 @@
   function updateGrist(lat, lon) {
     if (!currentRecord || !tableId) return;
 
-  const fields = {
-    ...(currentRecord.Geometry !== undefined && {
-      Geometry: `POINT (${lon} ${lat})`
-    }),
-    ...(currentRecord.Latitude !== undefined && {
-      Latitude: Number(lat)
-    }),
-    ...(currentRecord.Longitude !== undefined && {
-      Longitude: Number(lon)
-    })
-  };
+    const fields = {};
+
+    if (currentRecord.Geometry !== undefined) {
+      fields.Geometry = `POINT (${lon} ${lat})`;
+    }
+    if (currentRecord.Latitude !== undefined) {
+      fields.Latitude = Number(lat);
+    }
+    if (currentRecord.Longitude !== undefined) {
+      fields.Longitude = Number(lon);
+    }
 
     grist.docApi.applyUserActions([
       ["UpdateRecord", tableId, currentRecord.id, fields]
