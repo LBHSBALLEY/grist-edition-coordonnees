@@ -34,47 +34,11 @@
       { name: 'Longitude', type: 'Numeric', optional: true },
       { name: 'Geometry',     type: 'Text',    optional: true,
         description: 'Format WKT: POINT (lon lat)' },
+      { name: 'Label', type: 'Text' }
     ]
   });
 
-grist.onRecords(records => {
-  console.log('onRecordS');
-  const session = records[0];
-  console.log(session);
-  if (!session || !session.CurrentRecord) return;
-
-  const record = session.CurrentRecord;
-    let lat, lon;
-
-    if (record.Geometry) {
-      // Parse WKT format: POINT (lon lat)
-      const match = record.Geometry.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/i);
-      if (match) {
-        lon = parseFloat(match[1]);
-        lat = parseFloat(match[2]);
-      }
-    } else {
-      lat = record.Latitude;
-      lon = record.Longitude;
-    }
-
-    if (lat && lon) {
-      hasCoords = true;
-      if (marker) {
-        marker.setLatLng([lat, lon]);
-      } else {
-        marker = createMarker(lat, lon);
-      }
-      map.setView([lat, lon], 15);
-    } else {
-      hasCoords = false;
-      if (marker) {
-        map.removeLayer(marker);
-        marker = null;
-      }
-    }
-});
-  
+ 
   grist.onRecord(function(record) {
     console.log('onRecord');
     if (!record) return;
@@ -103,6 +67,10 @@ grist.onRecords(records => {
         marker = createMarker(lat, lon);
       }
       map.setView([lat, lon], 15);
+      marker.bindTooltip(record.Label || "Sans nom", {
+        permanent: true,
+        direction: "top"
+      });
     } else {
       hasCoords = false;
       if (marker) {
