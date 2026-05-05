@@ -6,10 +6,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
 
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <style>
     html, body, #map {
       height: 100%;
@@ -47,33 +44,6 @@
     ]
   });
 
-
-grist.onRecords(records => {
-  markersCluster.clearLayers();
-
-  records.forEach(record => {
-    let lat, lon;
-
-    if (record.Geometry) {
-      // Parse WKT format: POINT (lon lat)
-      const match = record.Geometry.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/i);
-      console.log('geom = ' + record.Geometry);
-      if (match) {
-        lon = parseFloat(match[1]);
-        lat = parseFloat(match[2]);
-      }
-    } else {
-      lat = record.Latitude;
-      lon = record.Longitude;
-    }
-    if (lat && lon) {
-      const marker = L.marker([record.Latitude, record.Longitude]);
-      const label = String(record.Label ?? "—");
-      marker.bindTooltip(label);
-      markersCluster.addLayer(marker);
-    }
-  });
-});
   
   grist.onRecord(function(record) {
     console.log('onRecord');
