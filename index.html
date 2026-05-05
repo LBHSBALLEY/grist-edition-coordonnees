@@ -30,11 +30,11 @@
   grist.ready({
     requiredAccess: 'full',
     columns: [
+      { name: 'Label'},
       { name: 'Latitude',  type: 'Numeric', optional: true },
       { name: 'Longitude', type: 'Numeric', optional: true },
       { name: 'Geometry',     type: 'Text',    optional: true,
-        description: 'Format WKT: POINT (lon lat)' },
-      { name: 'Label', type: 'Text' }
+        description: 'Format WKT: POINT (lon lat)' }
     ]
   });
 
@@ -67,7 +67,7 @@
         marker = createMarker(lat, lon);
       }
       map.setView([lat, lon], 15);
-      marker.bindTooltip(record.Label || "Sans nom", {
+      marker.bindTooltip(String(record.Label ?? "—"), {
         permanent: true,
         direction: "top"
       });
