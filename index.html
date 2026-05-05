@@ -41,7 +41,10 @@
  
   grist.onRecord(function(record) {
     console.log('onRecord');
-    if (!record) return;
+    if (!record) {
+      console.log('no current record');
+      return;
+    }
     currentRecord = record;
     tableId = grist.getSelectedTableIdSync();
 
@@ -50,6 +53,7 @@
     if (record.Geometry) {
       // Parse WKT format: POINT (lon lat)
       const match = record.Geometry.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/i);
+      console.log('geom = ' + record.Geometry);
       if (match) {
         lon = parseFloat(match[1]);
         lat = parseFloat(match[2]);
