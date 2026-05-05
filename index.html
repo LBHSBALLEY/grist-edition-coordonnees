@@ -67,10 +67,6 @@
         marker = createMarker(lat, lon);
       }
       map.setView([lat, lon], 15);
-      marker.bindTooltip(String(record.Label ?? "—"), {
-        permanent: true,
-        direction: "top"
-      });
     } else {
       hasCoords = false;
       if (marker) {
