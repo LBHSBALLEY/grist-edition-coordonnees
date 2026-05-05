@@ -70,6 +70,7 @@
       } else {
         marker = createMarker(lat, lon);
       }
+      marker.bindTooltip(String(record.Label ?? "—"));
       map.setView([lat, lon], 15);
     } else {
       hasCoords = false;
